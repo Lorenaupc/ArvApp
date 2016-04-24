@@ -1,5 +1,7 @@
 package es.atmosferia.arva.arvapp;
 
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,11 +19,41 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.Set;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.View;
+
+import android.app.Activity;
+import android.app.ProgressDialog;
+
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 
 import java.io.Console;
 
+
+
 public class MainActivity extends AppCompatActivity {
+
+    private static final int REQUEST_ENABLE_BT = 1;
+    private static final int BLUETOOTH_ADMIN = 2;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -32,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
+    private BluetoothAdapter myBA = BluetoothAdapter.getDefaultAdapter();
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -63,10 +96,50 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        if(myBA == null){
+            Toast a = Toast.makeText(this, "Bluetooth not supported", Toast.LENGTH_LONG);
+            a.show();
+        }
+        else{
+            if (!myBA.isEnabled()) {
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            }
+        }
+
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode){
+            case REQUEST_ENABLE_BT:
+                if(resultCode == RESULT_CANCELED){
+                    Toast a = Toast.makeText(this, "Please enable bluetooth", Toast.LENGTH_LONG);
+                    a.show();
+                }
+                else if(resultCode == RESULT_OK){
+                    Toast a = Toast.makeText(this, "Bluetooth enabled and ready", Toast.LENGTH_LONG);
+                    a.show();
+                }
+                break;
+
+            case BLUETOOTH_ADMIN:
+                if(resultCode == RESULT_CANCELED){
+                    Toast a = Toast.makeText(this, "Please choose a device to connect", Toast.LENGTH_LONG);
+                    a.show();
+                }
+                else if(resultCode == RESULT_OK){
+                    Toast a = Toast.makeText(this, "Connected!", Toast.LENGTH_LONG);
+                    a.show();
+                    //but.setVisibility(View.GONE);
+                }
+                break;
+        }
     }
 
 
-    @Override
+        @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main_menu, menu);
@@ -123,6 +196,15 @@ public class MainActivity extends AppCompatActivity {
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
                     TextView textView = (TextView) rootView.findViewById(R.id.section_label);
                     textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+                    Button but = (Button) rootView.findViewById(R.id.button);
+
+                    but.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent i = new Intent(view.getContext(), BluetoothActivity.class);
+                            startActivityForResult(i, BLUETOOTH_ADMIN);
+                        }
+                    });
                     break;
                 case 2:
                     rootView = inflater.inflate(R.layout.fragment_gps, container, false);
@@ -171,4 +253,5 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
+
 }
