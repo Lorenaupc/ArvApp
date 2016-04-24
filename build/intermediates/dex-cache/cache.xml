@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-wearable/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="e167a34eaca0b31704212f43f9576ea84e05046f">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-wearable-8.4.0_c0378008bb6c1358c4b405b0e2e48e2adb28275d/classes.dex" />
+    </item>
+    <item
+        jar="/root/Android/Sdk/extras/android/m2repository/com/android/support/support-annotations/23.3.0/support-annotations-23.3.0.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="db7791d75a07fef9844d06236c1c59ba7bf6997c">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/support-annotations-23.3.0_b975d86e0abec7206d5cce18f9d4cf511f96b32d/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-ads/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="b5e7892fb0708e792e0e933c4c0a0ca0ac7831fb">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-ads-8.4.0_ab466535e15673b4ce4a08da88c1f23e69a8b003/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.android.support/design/23.3.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="f0001e71cea6ae432a00021c6f727f5ef0f3d27e">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-design-23.3.0_1f585fe99af080cc4a39db4d8c2dd1e0971d46b6/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-vision/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="dfecc4d835cdabcdecf7e95f0d20a3ef1e9d8ef4">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-vision-8.4.0_cb17c526b2cb9a814428049739d97f703d4f58e9/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-analytics/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="1c9f35e952b212c843f7bd2c7eec8e82ad95602e">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-analytics-8.4.0_5da3d3afea43635d5d7e50f9e3541ceb9e8a3175/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.android.support/support-v4/23.3.0/jars/libs/internal_impl-23.3.0.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="4da5a4d697d32497c6f85567a5112e62fdfd0676">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/internal_impl-23.3.0_966849c7b9e0137457e1aa3e4c5a5ffca7e1c1d4/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="cd24d0f713cb980ed5ef7044a83dd22bf0bc4847">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run-bootstrap_38b585838a6b2707b33dc934852b97185081bd1b/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-auth/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="966e5771a5a2ebfb31bf00d7cd6cd2546d245517">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-auth-8.4.0_4fbe93e1b0754707020d31c9f6436f07a4ded60c/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-appindexing/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="65d086ee9daaf87b5af62ad24471edafa433354c">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-appindexing-8.4.0_51578bb0b8c0d9d0b2127a9b989a3d6e7780a460/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-appinvite/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="9fe026fb4c7fce21bc5142f6e1bdf844f28061ac">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-appinvite-8.4.0_095280d64e1d24b78ab84057ffc73e162f25bc73/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-identity/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="b82b8e847173c28efffcd291b2a0b1ae9ad17fa4">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-identity-8.4.0_9c97687e0d673d370672d24f8474f4144bee0203/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-drive/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="b36f30ac5ee5d5214f4b1e2ac49f11889d58e71a">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-drive-8.4.0_a2a19d03c5c858bc5b41c2be41b76e3886d3fffa/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-panorama/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="08d34b2d135c1cc96ab506fd8bf6916d1e2f391a">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-panorama-8.4.0_7c6e65d4949888779b9ab85c5e8f7b09b9d0198b/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.android.support/recyclerview-v7/23.3.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="debf30ce0a7560396b6235edef77e447006454c2">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-recyclerview-v7-23.3.0_3e94ab590d04155807d923613743a2ac4600ccaa/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-fitness/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="c54246475c1bb64ac6857d1320364bfbfeda2c46">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-fitness-8.4.0_c0c13f25dcd0f5ba6950cdda32f7812f6bccb5f9/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.android.support/animated-vector-drawable/23.3.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="23be6993826b8fd88bbc8d14928bb3b8960d3d4e">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-animated-vector-drawable-23.3.0_afa636623f8ec223c5f8f205f7dd4629e79e7d3c/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="118f2dc1b38563779b85c1fa86d62a4abd5a2908">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run_8f9df176a61399da9a7a189136da2f99bf4d170d/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/23.0.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="d358b3dd49a7c67844622dcbc9cf4339e13952ce">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-mediarouter-v7-23.0.0_0cfe5d6d91f77d45d7666748ccb033b514c42071/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-location/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="a8412b654dab86d57bf90683367488211c8a81f1">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-location-8.4.0_da43ce946fe709a6610d0e282f76a4b0715e7764/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-gcm/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="2d7fe76982677315c4dc4edfb459c8ca718a9d4c">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-gcm-8.4.0_d7d495f17fd3a6258fcb4c128e12f9cbb0a7418c/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-wallet/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="f2df436a8f02ce7e4d7d209671fc45f97c470f0e">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-wallet-8.4.0_17043198fd4d0fa013eac3b0d8c9815cff56212b/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-measurement/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="613298b7aa012f121ce542881c0a599ebd8078f2">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-measurement-8.4.0_dc94a9716dc467be903c6d77f9fd48d1f1d3e870/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-basement/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="8e673cdfadd8f2d98fdb2fda2285c30f6e449782">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-basement-8.4.0_d70e3091384c8bcb4d52a3fa259ab27c27ba5bc6/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/23.0.0/jars/libs/internal_impl-23.0.0.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="03d38bb042efe3e5ce27ba66b729a9523c36d8fe">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/internal_impl-23.0.0_c761faf79e636e4343e1a5dfe98e48809642139d/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-safetynet/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="0194a7409c40de94fb539d4ad9928ec5d47afeb7">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-safetynet-8.4.0_26d4657e57c34ff15357d83cc745b547343dc374/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-plus/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="1a78298e7724d5440d210bcb946b3493250d354d">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-plus-8.4.0_88b2b26ab7dc79c45a3334cfd53ca144915e52d7/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.android.support/support-v4/23.3.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="8a034dd16c0dfd75fe86c52c2cd581592acc684a">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-v4-23.3.0_3a4ba999dc9629a3316605579719e4559030b966/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-nearby/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="9cad249cf62751a323d9af568caf12284b7d6062">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-nearby-8.4.0_c12439a9890da50863df1e4292dc1b2cc1e84c18/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-cast/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="551e78f21acf69ebfb489c0e79647824c838013e">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-cast-8.4.0_11bf6ce8cd41dcb03b8a15d2af4489d9d2d9d34e/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="fef2b3e4b6b1b0e5fe7b69fa137a5fa55a3182ab">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-base-8.4.0_aea782906602c1cb38953b1f94fcc7764b529096/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/23.3.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="a0b5d60246cd9d4f3f2443611b3b4c25265840b5">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-vector-drawable-23.3.0_e996cd70cffa140b17b8bcb22139ba5285d50baf/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-maps/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="04de44f90606c77f3b28cf44861f306290505aac">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-maps-8.4.0_e9edee37a35bcf2df72f1a121145f957b8fd8f6a/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-games/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="3a364cc6b698d1b3b2d284f64618daaa7fe77ddf">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.google.android.gms-play-services-games-8.4.0_6a49d01523dbd9f85a86756736475a6b7bdabd5a/classes.dex" />
+    </item>
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.3.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="1b8e03daaa43fb0a4cd57e378167c2fd70454c1e">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-appcompat-v7-23.3.0_343401cc4669c561e428445baa08f815d58ec77c/classes.dex" />
+    </item>
+
+</items>
