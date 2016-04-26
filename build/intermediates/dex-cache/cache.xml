@@ -1,2 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<items version="2" />
+<items version="2" >
+
+    <item
+        jar="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="bd0e742a6b4d0f7ac97ed203ce5982cbf0345467">
+        <dex dex="/root/AndroidStudioProjects/ArvApp/mobile/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run-bootstrap_38b585838a6b2707b33dc934852b97185081bd1b/classes.dex" />
+    </item>
+
+</items>

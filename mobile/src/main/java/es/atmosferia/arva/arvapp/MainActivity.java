@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
                     but.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Intent i = new Intent(view.getContext(), BluetoothActivity.class);
+                            Intent i = new Intent(view.getContext(), BluetoothMainActivity.class);
                             startActivityForResult(i, BLUETOOTH_ADMIN);
                         }
                     });
