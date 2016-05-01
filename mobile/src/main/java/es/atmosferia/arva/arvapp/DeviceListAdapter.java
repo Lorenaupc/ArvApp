@@ -1,11 +1,13 @@
-package es.atmosferia.arva.arvapp; /**
- * Created by root on 24/04/16.
- */
+package es.atmosferia.arva.arvapp;
+
 import java.util.List;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 
+import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,7 +64,7 @@ public class DeviceListAdapter extends BaseAdapter{
             holder = (ViewHolder) convertView.getTag();
         }
 
-        BluetoothDevice device	= mData.get(position);
+        final BluetoothDevice device	= mData.get(position);
 
         holder.nameTv.setText(device.getName());
         holder.addressTv.setText(device.getAddress());

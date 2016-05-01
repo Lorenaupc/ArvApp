@@ -1,7 +1,11 @@
 package es.atmosferia.arva.arvapp;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.os.Build;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -19,41 +23,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.Set;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-
-import android.graphics.Color;
-import android.os.Bundle;
-import android.view.View;
-
-import android.app.Activity;
-import android.app.ProgressDialog;
-
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-
-import java.io.Console;
-
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Method;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_ENABLE_BT = 1;
-    private static final int BLUETOOTH_ADMIN = 2;
+    private static final int BLUETOOTH_SEARCH_DEVICE = 2;
+    private static final int RECIEVE_MESSAGE = 3;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -64,12 +47,22 @@ public class MainActivity extends AppCompatActivity {
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
-    private BluetoothAdapter myBA = BluetoothAdapter.getDefaultAdapter();
+
+    // SPP UUID service
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    Handler h;
+    private BluetoothSocket btSocket = null;
+    private StringBuilder sb = new StringBuilder();
+
+    private ConnectedThread mConnectedThread;
+
 
     /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    private BluetoothAdapter myBA = BluetoothAdapter.getDefaultAdapter();
+    private BluetoothDevice connectedDevice = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,58 +84,93 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent i = new Intent(MainActivity.this, BluetoothDeviceListActivity.class);
+                startActivityForResult(i, BLUETOOTH_SEARCH_DEVICE);
             }
         });
 
         if(myBA == null){
-            Toast a = Toast.makeText(this, "Bluetooth not supported", Toast.LENGTH_LONG);
-            a.show();
+            Toast message = Toast.makeText(this, "Bluetooth not supportted", Toast.LENGTH_LONG);
+            message.show();
         }
         else{
-            if (!myBA.isEnabled()) {
+            if(!myBA.isEnabled()){
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             }
         }
 
-
+        h = new Handler() {
+            public void handleMessage(android.os.Message msg) {
+                switch (msg.what) {
+                    case RECIEVE_MESSAGE:													// if receive massage
+                        byte[] readBuf = (byte[]) msg.obj;
+                        String strIncom = new String(readBuf, 0, msg.arg1);					// create string from bytes array
+                        sb.append(strIncom);												// append string
+                        int endOfLineIndex = sb.indexOf("\r\n");							// determine the end-of-line
+                        if (endOfLineIndex > 0) { 											// if end-of-line,
+                            String sbprint = sb.substring(0, endOfLineIndex);				// extract string
+                            sb.delete(0, sb.length());										// and clear
+                            //TODO: do appropiate things with data
+                            Log.i("DATA:", sbprint);
+                            /*txtArduino.setText("Data from Arduino: " + sbprint); 	        // update TextView
+                            btnOff.setEnabled(true);
+                            btnOn.setEnabled(true);*/
+                        }
+                        //Log.d(TAG, "...String:"+ sb.toString() +  "Byte:" + msg.arg1 + "...");
+                        break;
+                }
+            };
+        };
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode){
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        Toast res;
+        switch(requestCode){
             case REQUEST_ENABLE_BT:
-                if(resultCode == RESULT_CANCELED){
-                    Toast a = Toast.makeText(this, "Please enable bluetooth", Toast.LENGTH_LONG);
-                    a.show();
-                }
-                else if(resultCode == RESULT_OK){
-                    Toast a = Toast.makeText(this, "Bluetooth enabled and ready", Toast.LENGTH_LONG);
-                    a.show();
-                }
-                break;
-
-            case BLUETOOTH_ADMIN:
-                if(resultCode == RESULT_CANCELED){
-                    Toast a = Toast.makeText(this, "Please choose a device to connect", Toast.LENGTH_LONG);
-                    a.show();
-                }
-                else if(resultCode == RESULT_OK){
-                    Toast a = Toast.makeText(this, "Connected!", Toast.LENGTH_LONG);
-                    a.show();
-                    //but.setVisibility(View.GONE);
+                switch(resultCode){
+                    case RESULT_CANCELED:
+                        res = Toast.makeText(this, "Please enable Bluetooth", Toast.LENGTH_LONG);
+                        res.show();
+                        break;
+                    case RESULT_OK:
+                        res = Toast.makeText(this, "Bluetooth enabled and ready!", Toast.LENGTH_LONG);
+                        res.show();
+                        break;
+                    default:
+                        res = Toast.makeText(this, "Something gone wrong while enabling bluetooth, try again please", Toast.LENGTH_LONG);
+                        res.show();
+                        break;
                 }
                 break;
+            case BLUETOOTH_SEARCH_DEVICE:
+                switch(resultCode){
+                    case RESULT_CANCELED:
+                        res = Toast.makeText(this, "You must link a ARVA device to proceed", Toast.LENGTH_LONG);
+                        res.show();
+                        break;
+                    case RESULT_OK:
+                        //desactivar botó i ficar la imatge en fletxa
+                        Bundle bund = data.getExtras();
+                        connectedDevice = bund.getParcelable("BluetoothDevice");
+                        Log.i("MAC: ", connectedDevice.getAddress());
+                        res = Toast.makeText(this, "Succeded!", Toast.LENGTH_LONG);
+                        res.show();
+                        break;
+                    default:
+                        res = Toast.makeText(this, "Something gone wrong while enabling bluetooth, try again please", Toast.LENGTH_LONG);
+                        res.show();
+                        break;
+                }
         }
     }
 
 
-        @Override
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main_menu, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -159,6 +187,58 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        Log.i("resuuuuuuuume", "...onResume - try connect...");
+        BluetoothDevice device = connectedDevice;
+        if(device != null){
+            try {
+                btSocket = createBluetoothSocket(device);
+            } catch (IOException e) {
+                Toast.makeText(this, "Error, failed to resume the activity", Toast.LENGTH_LONG).show();
+                finish();
+            }
+            myBA.cancelDiscovery();
+
+            // Establish the connection.  This will block until it connects.
+            Log.i("connect", "...Connecting...");
+            try {
+                btSocket.connect();
+                Log.i("ok", "....Connection ok...");
+            } catch (IOException e) {
+                try {
+                    btSocket.close();
+                } catch (IOException e2) {
+                    Toast.makeText(this, "Error, failed to resume the activity", Toast.LENGTH_LONG).show();
+                    finish();
+                }
+            }
+
+            Log.i("create socket", "...Create Socket...");
+            mConnectedThread = new ConnectedThread(btSocket);
+            mConnectedThread.start();
+        }
+    }
+
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        Log.i("PAUSE", "...In onPause()...");
+
+        if(connectedDevice != null){
+            try     {
+                btSocket.close();
+            } catch (IOException e2) {
+                Toast.makeText(this, "Error, failed to pause the activity", Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
     }
 
     /**
@@ -190,21 +270,11 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = null;
-            Log.v("KK", String.valueOf(getArguments().getInt(ARG_SECTION_NUMBER)));
             switch(getArguments().getInt(ARG_SECTION_NUMBER)){
                 case 1:
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
                     TextView textView = (TextView) rootView.findViewById(R.id.section_label);
                     textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-                    Button but = (Button) rootView.findViewById(R.id.button);
-
-                    but.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Intent i = new Intent(view.getContext(), BluetoothMainActivity.class);
-                            startActivityForResult(i, BLUETOOTH_ADMIN);
-                        }
-                    });
                     break;
                 case 2:
                     rootView = inflater.inflate(R.layout.fragment_gps, container, false);
@@ -213,6 +283,7 @@ public class MainActivity extends AppCompatActivity {
                     rootView = inflater.inflate(R.layout.fragment_stats, container, false);
                     break;
             }
+
             return rootView;
         }
     }
@@ -254,4 +325,63 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private class ConnectedThread extends Thread {
+        private final InputStream mmInStream;
+        private final OutputStream mmOutStream;
+
+        public ConnectedThread(BluetoothSocket socket) {
+            InputStream tmpIn = null;
+            OutputStream tmpOut = null;
+
+            // Get the input and output streams, using temp objects because
+            // member streams are final
+            try {
+                tmpIn = socket.getInputStream();
+                tmpOut = socket.getOutputStream();
+            } catch (IOException e) { }
+
+            mmInStream = tmpIn;
+            mmOutStream = tmpOut;
+        }
+
+        public void run() {
+            byte[] buffer = new byte[256];  // buffer store for the stream
+            int bytes; // bytes returned from read()
+
+            // Keep listening to the InputStream until an exception occurs
+            while (true) {
+                try {
+                    // Read from the InputStream
+                    bytes = mmInStream.read(buffer);		// Get number of bytes and message in "buffer"
+                    h.obtainMessage(RECIEVE_MESSAGE, bytes, -1, buffer).sendToTarget();		// Send to message queue Handler
+                } catch (IOException e) {
+                    break;
+                }
+            }
+        }
+
+        /* Call this from the main activity to send data to the remote device */
+        public void write(String message) {
+            Log.i("WRIIIIIITE","...Data to send: " + message + "...");
+            byte[] msgBuffer = message.getBytes();
+            try {
+                mmOutStream.write(msgBuffer);
+            } catch (IOException e) {
+                Log.i("ERRRROOOOOOOR","...Error data send: " + e.getMessage() + "...");
+            }
+        }
+    }
+
+    //Private function, connects a BluetoothSocket
+    private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
+        if(Build.VERSION.SDK_INT >= 10){
+            try {
+                final Method m = device.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", new Class[] { UUID.class });
+                return (BluetoothSocket) m.invoke(device, MY_UUID);
+            } catch (Exception e) {
+                Log.i("SOCKET: ", "Could not create Insecure RFComm Connection",e);
+            }
+        }
+        return  device.createRfcommSocketToServiceRecord(MY_UUID);
+    }
 }
