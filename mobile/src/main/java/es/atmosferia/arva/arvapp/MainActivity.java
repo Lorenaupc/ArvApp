@@ -26,6 +26,16 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -47,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
+
 
     // SPP UUID service
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
@@ -112,6 +123,8 @@ public class MainActivity extends AppCompatActivity {
                             String sbprint = sb.substring(0, endOfLineIndex);				// extract string
                             sb.delete(0, sb.length());										// and clear
                             //TODO: do appropiate things with data
+                            TextView textView = (TextView) findViewById(R.id.section_label);
+                            textView.setText("Bluetooth available and receiving data: " + sbprint);
                             Log.i("DATA:", sbprint);
                             /*txtArduino.setText("Data from Arduino: " + sbprint); 	        // update TextView
                             btnOff.setEnabled(true);
@@ -240,7 +253,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -253,6 +265,9 @@ public class MainActivity extends AppCompatActivity {
 
         public PlaceholderFragment() {
         }
+
+        private MapView mapView = null;
+        private GoogleMap mMap;
 
         /**
          * Returns a new instance of this fragment for the given section
@@ -274,10 +289,23 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
                     TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-                    textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+                    textView.setText("Please enable bluetooth!");
                     break;
                 case 2:
                     rootView = inflater.inflate(R.layout.fragment_gps, container, false);
+                    mapView = (MapView) rootView.findViewById(R.id.map);
+                    mapView.onCreate(savedInstanceState);
+                    mMap = mapView.getMap();
+                    mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                    try{
+                        mMap.setMyLocationEnabled(true);
+                    }catch (SecurityException se){
+                        se.printStackTrace();
+                    }
+
+                    MapsInitializer.initialize(this.getActivity());
+
+                    //mMap.setMyLocationEnabled(true);
                     break;
                 case 3:
                     rootView = inflater.inflate(R.layout.fragment_stats, container, false);

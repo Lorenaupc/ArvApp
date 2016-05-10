@@ -6,6 +6,5 @@
 
     <!-- BLE -->
     <string name="text_pair">Pair</string>
-
     <string name="title_activity_maps">Map</string>
 </resources>
