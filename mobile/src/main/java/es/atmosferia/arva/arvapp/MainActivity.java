@@ -3,7 +3,11 @@ package es.atmosferia.arva.arvapp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -75,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter myBA = BluetoothAdapter.getDefaultAdapter();
     private BluetoothDevice connectedDevice = null;
 
+    private LocationListener locationListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +95,14 @@ public class MainActivity extends AppCompatActivity {
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
+
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationListener = new MyLocationListener();
+        try{
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 700, 2, locationListener);
+        }catch (SecurityException se){
+            se.printStackTrace();
+        }
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -253,6 +267,32 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+    /*  Private class
+        for the GPS
+            Admin
+     */
+    private class MyLocationListener implements LocationListener {
+
+        @Override
+        public void onLocationChanged(Location loc) {
+            double latitude = loc.getLatitude();
+            double longitude = loc.getLongitude();
+            Toast.makeText(MainActivity.this, String.valueOf(latitude) + ":" + String.valueOf(longitude),Toast.LENGTH_LONG).show();
+            if (mConnectedThread != null){
+                mConnectedThread.write(String.valueOf(latitude) + ":" + String.valueOf(longitude));
+            }
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle savedInstance){}
+
+        @Override
+        public void onProviderDisabled(String provider) {}
+
+        @Override
+        public void onProviderEnabled(String provider) {}
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -390,12 +430,11 @@ public class MainActivity extends AppCompatActivity {
 
         /* Call this from the main activity to send data to the remote device */
         public void write(String message) {
-            Log.i("WRIIIIIITE","...Data to send: " + message + "...");
+
             byte[] msgBuffer = message.getBytes();
             try {
                 mmOutStream.write(msgBuffer);
             } catch (IOException e) {
-                Log.i("ERRRROOOOOOOR","...Error data send: " + e.getMessage() + "...");
             }
         }
     }
