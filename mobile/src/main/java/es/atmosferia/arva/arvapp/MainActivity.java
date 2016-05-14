@@ -5,16 +5,18 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -26,31 +28,34 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int BLUETOOTH_SEARCH_DEVICE = 2;
     private static final int RECIEVE_MESSAGE = 3;
+
+    private double ourArvaLatitude = 0;
+    private double ourArvaLongitude = 0;
+    private double receivingArvaLatitude = 0;
+    private double receivingArvaLongitude = 0;
+    private float firstOrientation = -1;
+    private float secondOrientation = -1;
+    private float bearing = 0;
+    private ImageView arrow = null;
+    private float distance = 0;
+    private TextView distanceTextView = null;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -81,10 +86,14 @@ public class MainActivity extends AppCompatActivity {
 
     private LocationListener locationListener;
 
+    private SensorManager mSensorManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -99,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationListener = new MyLocationListener();
         try{
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 700, 2, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
         }catch (SecurityException se){
             se.printStackTrace();
         }
@@ -133,18 +142,58 @@ public class MainActivity extends AppCompatActivity {
                         String strIncom = new String(readBuf, 0, msg.arg1);					// create string from bytes array
                         sb.append(strIncom);												// append string
                         int endOfLineIndex = sb.indexOf("\r\n");							// determine the end-of-line
-                        if (endOfLineIndex > 0) { 											// if end-of-line,
-                            String sbprint = sb.substring(0, endOfLineIndex);				// extract string
-                            sb.delete(0, sb.length());										// and clear
+                        if (endOfLineIndex > 0) {                                            // if end-of-line,
+                            String sbprint = sb.substring(0, endOfLineIndex);                // extract string
+                            sb.delete(0, sb.length());                                        // and clear
                             //TODO: do appropiate things with data
-                            TextView textView = (TextView) findViewById(R.id.section_label);
+                            //Log.i("String", String.valueOf(sbprint.indexOf(':')));
+
+                            boolean error = false;
+                            String aux = "";
+                            try {
+                                aux = sbprint.substring(0, sbprint.indexOf('F') + 1);
+                                Toast.makeText(MainActivity.this, aux, Toast.LENGTH_LONG).show();
+                            }catch (IndexOutOfBoundsException e){
+                                e.printStackTrace();
+                            }
+                            if (aux.equalsIgnoreCase("Arvf")){
+                                Toast.makeText(MainActivity.this, sbprint, Toast.LENGTH_LONG).show();
+                                try {
+                                    aux = sbprint.substring(sbprint.indexOf('F') + 1, sbprint.indexOf(':'));
+                                } catch (IndexOutOfBoundsException e) {
+                                    e.printStackTrace();
+                                    error = true;
+                                }
+                                try {
+                                    receivingArvaLatitude = Double.parseDouble(aux);
+                                } catch (NumberFormatException e) {
+                                    e.printStackTrace();
+                                    error = true;
+                                }
+                                try {
+                                    aux = sbprint.substring(sbprint.indexOf(':') + 1, sbprint.length());
+                                } catch (IndexOutOfBoundsException e) {
+                                    e.printStackTrace();
+                                    error = true;
+                                }
+                                try {
+                                    receivingArvaLongitude = Double.parseDouble(aux);
+                                } catch (NumberFormatException e) {
+                                    e.printStackTrace();
+                                    error = true;
+                                }
+                                if (receivingArvaLatitude != 0 && ourArvaLongitude != 0 && !error) {
+                                    Toast.makeText(MainActivity.this, String.valueOf(receivingArvaLatitude) + String.valueOf(receivingArvaLongitude), Toast.LENGTH_LONG).show();
+                                    recalculate();
+                                }
+                            }
+                            /*TextView textView = (TextView) findViewById(R.id.section_label);
                             textView.setText("Bluetooth available and receiving data: " + sbprint);
                             Log.i("DATA:", sbprint);
                             /*txtArduino.setText("Data from Arduino: " + sbprint); 	        // update TextView
                             btnOff.setEnabled(true);
                             btnOn.setEnabled(true);*/
                         }
-                        //Log.d(TAG, "...String:"+ sb.toString() +  "Byte:" + msg.arg1 + "...");
                         break;
                 }
             };
@@ -220,7 +269,6 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
-        Log.i("resuuuuuuuume", "...onResume - try connect...");
         BluetoothDevice device = connectedDevice;
         if(device != null){
             try {
@@ -249,6 +297,9 @@ public class MainActivity extends AppCompatActivity {
             mConnectedThread = new ConnectedThread(btSocket);
             mConnectedThread.start();
         }
+
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
+                SensorManager.SENSOR_DELAY_GAME);
     }
 
 
@@ -267,6 +318,24 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if(firstOrientation == -1){
+            firstOrientation = Math.round(event.values[0]);
+            secondOrientation = -1;
+        }
+        else {
+            secondOrientation = Math.round(event.values[0]);
+        }
+
+        updateArrow();
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // not in use
+    }
     /*  Private class
         for the GPS
             Admin
@@ -275,11 +344,15 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onLocationChanged(Location loc) {
-            double latitude = loc.getLatitude();
-            double longitude = loc.getLongitude();
-            Toast.makeText(MainActivity.this, String.valueOf(latitude) + ":" + String.valueOf(longitude),Toast.LENGTH_LONG).show();
+            ourArvaLatitude = loc.getLatitude();
+            ourArvaLongitude = loc.getLongitude();
+            //Toast.makeText(MainActivity.this, String.valueOf(ourArvaLatitude) + ":" + String.valueOf(ourArvaLongitude),Toast.LENGTH_LONG).show();
             if (mConnectedThread != null){
-                mConnectedThread.write(String.valueOf(latitude) + ":" + String.valueOf(longitude));
+                //mConnectedThread.write(String.valueOf(latitude) + ":" + String.valueOf(longitude));
+            }
+            else{
+                Toast.makeText(MainActivity.this, String.valueOf(receivingArvaLatitude) + String.valueOf(receivingArvaLongitude), Toast.LENGTH_LONG).show();
+                recalculate();
             }
         }
 
@@ -287,10 +360,10 @@ public class MainActivity extends AppCompatActivity {
         public void onStatusChanged(String provider, int status, Bundle savedInstance){}
 
         @Override
-        public void onProviderDisabled(String provider) {}
+        public void onProviderDisabled(String provider){}
 
         @Override
-        public void onProviderEnabled(String provider) {}
+        public void onProviderEnabled(String provider){}
     }
 
     /**
@@ -329,7 +402,7 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
                     TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-                    textView.setText("Please enable bluetooth!");
+                    textView.setText("Please enable bluetooth and connect to an Arva device!");
                     break;
                 case 2:
                     rootView = inflater.inflate(R.layout.fragment_gps, container, false);
@@ -450,5 +523,49 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return  device.createRfcommSocketToServiceRecord(MY_UUID);
+    }
+
+    //Private function. Recalculates the direction of the arrow
+    private void recalculate(){
+        if(ourArvaLatitude != 0 && receivingArvaLatitude != 0) {
+            Location ourArva = new Location("OurArva");
+
+            ourArva.setLatitude(ourArvaLatitude);
+            ourArva.setLongitude(ourArvaLongitude);
+            Location receivingArva = new Location("ReceivingArva");
+            receivingArva.setLatitude(receivingArvaLatitude);
+            receivingArva.setLongitude(receivingArvaLongitude);
+
+            bearing = ourArva.bearingTo(receivingArva);
+            distance = ourArva.distanceTo(receivingArva);
+            firstOrientation = -1;
+            secondOrientation = -1;
+
+            Log.i("Bearing:", String.valueOf(bearing));
+        }
+
+        updateArrow();
+    }
+
+    private void updateArrow(){
+        arrow = (ImageView) findViewById(R.id.arrow);
+        distanceTextView = (TextView) findViewById(R.id.distance);
+
+        if(arrow != null && distanceTextView != null) {
+            if (firstOrientation != -1) {
+                if (secondOrientation != -1) {
+                    arrow.setRotation(0);
+                    arrow.setRotation(bearing + (firstOrientation - secondOrientation));
+                } else {
+                    arrow.setRotation(0);
+                    arrow.setRotation(bearing);
+                }
+            } else {
+                arrow.setRotation(0);
+                arrow.setRotation(bearing);
+            }
+
+            distanceTextView.setText(String.valueOf(distance) + " meters");
+        }
     }
 }

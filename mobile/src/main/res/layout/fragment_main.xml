@@ -13,4 +13,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="250dp"
+        android:id="@+id/arrow"
+        android:src="@mipmap/right"
+        android:paddingTop="30dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Distance"
+        android:id="@+id/distance"
+        android:layout_below="@+id/arrow"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="60dp"
+        android:textIsSelectable="false"
+        android:textSize="32dp"
+        android:textStyle="bold" />
+
 </RelativeLayout>
