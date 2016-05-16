@@ -76,6 +76,8 @@ public class BluetoothDeviceListActivity extends AppCompatActivity{
         //The listView that contains our devices, must be invalidated when new data comes
         listViewCompat = (ListViewCompat)findViewById(R.id.list_devices);
         listViewCompat.setAdapter(listAdapter);
+
+        startSearching();
     }
 
     @Override

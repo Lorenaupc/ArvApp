@@ -41,91 +41,74 @@ import java.lang.reflect.Method;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
-
+    // Private constants //
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int BLUETOOTH_SEARCH_DEVICE = 2;
     private static final int RECIEVE_MESSAGE = 3;
 
+    // Location variables //
     private double ourArvaLatitude = 0;
     private double ourArvaLongitude = 0;
+    private double ourArvaAltitude = 0;
+
     private double receivingArvaLatitude = 0;
     private double receivingArvaLongitude = 0;
-    private float firstOrientation = -1;
-    private float secondOrientation = -1;
+
     private float bearing = 0;
-    private ImageView arrow = null;
     private float distance = 0;
-    private TextView distanceTextView = null;
-
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-
-
-    // SPP UUID service
-    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    Handler h;
-    private BluetoothSocket btSocket = null;
-    private StringBuilder sb = new StringBuilder();
-
-    private ConnectedThread mConnectedThread;
-
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    private ViewPager mViewPager;
-    private BluetoothAdapter myBA = BluetoothAdapter.getDefaultAdapter();
-    private BluetoothDevice connectedDevice = null;
 
     private LocationListener locationListener;
 
+    // Orientation sensor variables
     private SensorManager mSensorManager;
+    private float firstOrientation = -1;
+    private float secondOrientation = -1;
+    private float orientation = -1;
 
+    //Bluetooth dependant variables
+    private Handler h;
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private BluetoothSocket btSocket = null;
+    private StringBuilder sb = new StringBuilder();
+
+    private BluetoothAdapter myBA = BluetoothAdapter.getDefaultAdapter();
+    private BluetoothDevice connectedDevice = null;
+    private ConnectedThread mConnectedThread;
+
+    //Fragment related variables
+    private SectionsPagerAdapter mSectionsPagerAdapter;
+    private ViewPager mViewPager;
+
+    private ImageView arrow = null;
+    private TextView distanceTextView = null;
+    private TextView latitude_info = null, longitude_info = null, altitude_info = null;
+
+    // function: onCreate -> Instantiates the important variables and listeners
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-
+        // Creation of the toolbar (for appCompat)
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-        // Set up the ViewPager with the sections adapter.
+        // Orientation Sensor
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+
+        // Fragments related
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.container);
+        assert mViewPager != null;
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        locationListener = new MyLocationListener();
-        try{
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        }catch (SecurityException se){
-            se.printStackTrace();
-        }
+        // Listeners
+        setListeners();
 
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(MainActivity.this, BluetoothDeviceListActivity.class);
-                startActivityForResult(i, BLUETOOTH_SEARCH_DEVICE);
-            }
-        });
-
+        // Enable bluetooth
         if(myBA == null){
-            Toast message = Toast.makeText(this, "Bluetooth not supportted", Toast.LENGTH_LONG);
-            message.show();
+            Toast.makeText(this, "Bluetooth not supportted", Toast.LENGTH_LONG).show();
+            finish();
         }
         else{
             if(!myBA.isEnabled()){
@@ -134,115 +117,45 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         }
 
-        h = new Handler() {
-            public void handleMessage(android.os.Message msg) {
-                switch (msg.what) {
-                    case RECIEVE_MESSAGE:													// if receive massage
-                        byte[] readBuf = (byte[]) msg.obj;
-                        String strIncom = new String(readBuf, 0, msg.arg1);					// create string from bytes array
-                        sb.append(strIncom);												// append string
-                        int endOfLineIndex = sb.indexOf("\r\n");							// determine the end-of-line
-                        if (endOfLineIndex > 0) {                                            // if end-of-line,
-                            String sbprint = sb.substring(0, endOfLineIndex);                // extract string
-                            sb.delete(0, sb.length());                                        // and clear
-                            //TODO: do appropiate things with data
-                            //Log.i("String", String.valueOf(sbprint.indexOf(':')));
 
-                            boolean error = false;
-                            String aux = "";
-                            try {
-                                aux = sbprint.substring(0, sbprint.indexOf('F') + 1);
-                                Toast.makeText(MainActivity.this, aux, Toast.LENGTH_LONG).show();
-                            }catch (IndexOutOfBoundsException e){
-                                e.printStackTrace();
-                            }
-                            if (aux.equalsIgnoreCase("Arvf")){
-                                Toast.makeText(MainActivity.this, sbprint, Toast.LENGTH_LONG).show();
-                                try {
-                                    aux = sbprint.substring(sbprint.indexOf('F') + 1, sbprint.indexOf(':'));
-                                } catch (IndexOutOfBoundsException e) {
-                                    e.printStackTrace();
-                                    error = true;
-                                }
-                                try {
-                                    receivingArvaLatitude = Double.parseDouble(aux);
-                                } catch (NumberFormatException e) {
-                                    e.printStackTrace();
-                                    error = true;
-                                }
-                                try {
-                                    aux = sbprint.substring(sbprint.indexOf(':') + 1, sbprint.length());
-                                } catch (IndexOutOfBoundsException e) {
-                                    e.printStackTrace();
-                                    error = true;
-                                }
-                                try {
-                                    receivingArvaLongitude = Double.parseDouble(aux);
-                                } catch (NumberFormatException e) {
-                                    e.printStackTrace();
-                                    error = true;
-                                }
-                                if (receivingArvaLatitude != 0 && ourArvaLongitude != 0 && !error) {
-                                    Toast.makeText(MainActivity.this, String.valueOf(receivingArvaLatitude) + String.valueOf(receivingArvaLongitude), Toast.LENGTH_LONG).show();
-                                    recalculate();
-                                }
-                            }
-                            /*TextView textView = (TextView) findViewById(R.id.section_label);
-                            textView.setText("Bluetooth available and receiving data: " + sbprint);
-                            Log.i("DATA:", sbprint);
-                            /*txtArduino.setText("Data from Arduino: " + sbprint); 	        // update TextView
-                            btnOff.setEnabled(true);
-                            btnOn.setEnabled(true);*/
-                        }
-                        break;
-                }
-            };
-        };
     }
 
+    //function: onActivityResult -> Evaluates the requestCode and do appropriate thigs with the received data
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
-        Toast res;
         switch(requestCode){
             case REQUEST_ENABLE_BT:
                 switch(resultCode){
                     case RESULT_CANCELED:
-                        res = Toast.makeText(this, "Please enable Bluetooth", Toast.LENGTH_LONG);
-                        res.show();
+                        Toast.makeText(this, "Please enable Bluetooth", Toast.LENGTH_LONG).show();
                         break;
                     case RESULT_OK:
-                        res = Toast.makeText(this, "Bluetooth enabled and ready!", Toast.LENGTH_LONG);
-                        res.show();
+                        Toast.makeText(this, "Bluetooth enabled and ready!", Toast.LENGTH_LONG).show();
                         break;
                     default:
-                        res = Toast.makeText(this, "Something gone wrong while enabling bluetooth, try again please", Toast.LENGTH_LONG);
-                        res.show();
+                        Toast.makeText(this, "Something gone wrong while enabling bluetooth, try again please", Toast.LENGTH_LONG).show();
                         break;
                 }
                 break;
             case BLUETOOTH_SEARCH_DEVICE:
                 switch(resultCode){
                     case RESULT_CANCELED:
-                        res = Toast.makeText(this, "You must link a ARVA device to proceed", Toast.LENGTH_LONG);
-                        res.show();
+                        Toast.makeText(this, "You must link a ARVA device to proceed", Toast.LENGTH_LONG).show();
                         break;
                     case RESULT_OK:
                         //desactivar botó i ficar la imatge en fletxa
-                        Bundle bund = data.getExtras();
-                        connectedDevice = bund.getParcelable("BluetoothDevice");
-                        Log.i("MAC: ", connectedDevice.getAddress());
-                        res = Toast.makeText(this, "Succeded!", Toast.LENGTH_LONG);
-                        res.show();
+                        Bundle bundle = data.getExtras();
+                        connectedDevice = bundle.getParcelable("BluetoothDevice");
+                        Toast.makeText(this, "Succeeded!", Toast.LENGTH_LONG).show();
                         break;
                     default:
-                        res = Toast.makeText(this, "Something gone wrong while enabling bluetooth, try again please", Toast.LENGTH_LONG);
-                        res.show();
+                        Toast.makeText(this, "Something gone wrong while enabling bluetooth, try again please", Toast.LENGTH_LONG).show();
                         break;
                 }
         }
     }
 
-
+    // function: onCreateOptionsMenu -> spawns the options in the menu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -250,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return true;
     }
 
+    // function: onOptionsItemSelected -> sets the listeners for the menu options
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -265,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return super.onOptionsItemSelected(item);
     }
 
+    // function: onResume -> Tries to create the bluetooth socket and registers the orientation sensor listener
     @Override
     public void onResume() {
         super.onResume();
@@ -302,23 +217,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 SensorManager.SENSOR_DELAY_GAME);
     }
 
-
+    // function: onPause -> closes the bluetooth socket
     @Override
     public void onPause() {
         super.onPause();
 
-        Log.i("PAUSE", "...In onPause()...");
-
         if(connectedDevice != null){
-            try     {
+            try {
                 btSocket.close();
-            } catch (IOException e2) {
+            } catch (IOException e) {
                 Toast.makeText(this, "Error, failed to pause the activity", Toast.LENGTH_LONG).show();
                 finish();
             }
         }
     }
 
+    // function: onSensorChanged -> When sensor changes do appropriate things with data
     @Override
     public void onSensorChanged(SensorEvent event) {
         if(firstOrientation == -1){
@@ -332,28 +246,35 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         updateArrow();
     }
 
+    // function onAccuracyChanged -> not in use
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // not in use
     }
-    /*  Private class
-        for the GPS
-            Admin
-     */
+
+    /* ---------------------------------------------------------------------------------------------
+                                            Private classes
+
+     ---------------------------------------------------------------------------------------------*/
     private class MyLocationListener implements LocationListener {
 
         @Override
         public void onLocationChanged(Location loc) {
             ourArvaLatitude = loc.getLatitude();
             ourArvaLongitude = loc.getLongitude();
-            //Toast.makeText(MainActivity.this, String.valueOf(ourArvaLatitude) + ":" + String.valueOf(ourArvaLongitude),Toast.LENGTH_LONG).show();
+            ourArvaAltitude = loc.getAltitude();
             if (mConnectedThread != null){
-                //mConnectedThread.write(String.valueOf(latitude) + ":" + String.valueOf(longitude));
+                mConnectedThread.write(String.valueOf(ourArvaLatitude) + ":" + String.valueOf(ourArvaLongitude));
+                if(arrow != null && distanceTextView != null){
+                    arrow.setVisibility(View.VISIBLE);
+                    distanceTextView.setVisibility(View.VISIBLE);
+                    findViewById(R.id.section_label).setVisibility(View.INVISIBLE);
+                }
             }
-            else{
+            /*else{
                 Toast.makeText(MainActivity.this, String.valueOf(receivingArvaLatitude) + String.valueOf(receivingArvaLongitude), Toast.LENGTH_LONG).show();
-                recalculate();
-            }
+            }*/
+            recalculate();
         }
 
         @Override
@@ -366,26 +287,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public void onProviderEnabled(String provider){}
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
     public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
         private static final String ARG_SECTION_NUMBER = "section_number";
 
-        public PlaceholderFragment() {
-        }
+        public PlaceholderFragment() { }
 
         private MapView mapView = null;
         private GoogleMap mMap;
 
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
         public static PlaceholderFragment newInstance(int sectionNumber) {
             PlaceholderFragment fragment = new PlaceholderFragment();
             Bundle args = new Bundle();
@@ -402,9 +311,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 case 1:
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
                     TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-                    textView.setText("Please enable bluetooth and connect to an Arva device!");
+                    rootView.findViewById(R.id.arrow).setVisibility(View.GONE);
+                    rootView.findViewById(R.id.distance).setVisibility(View.GONE);
+                    textView.setText(R.string.bleHelper);
                     break;
                 case 2:
+                    // TODO: fix map
                     rootView = inflater.inflate(R.layout.fragment_gps, container, false);
                     mapView = (MapView) rootView.findViewById(R.id.map);
                     mapView.onCreate(savedInstanceState);
@@ -416,8 +328,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         se.printStackTrace();
                     }
 
-                    MapsInitializer.initialize(this.getActivity());
-
+                    MapsInitializer.initialize(rootView.getContext());
                     //mMap.setMyLocationEnabled(true);
                     break;
                 case 3:
@@ -429,10 +340,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         public SectionsPagerAdapter(FragmentManager fm) {
@@ -441,14 +348,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         @Override
         public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
             return PlaceholderFragment.newInstance(position + 1);
         }
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
             return 3;
         }
 
@@ -456,11 +360,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "Main Page";
                 case 1:
-                    return "SECTION 2";
+                    return "Map";
                 case 2:
-                    return "SECTION 3";
+                    return "Stats";
             }
             return null;
         }
@@ -474,12 +378,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
 
-            // Get the input and output streams, using temp objects because
-            // member streams are final
             try {
                 tmpIn = socket.getInputStream();
                 tmpOut = socket.getOutputStream();
-            } catch (IOException e) { }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             mmInStream = tmpIn;
             mmOutStream = tmpOut;
@@ -492,7 +396,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // Keep listening to the InputStream until an exception occurs
             while (true) {
                 try {
-                    // Read from the InputStream
                     bytes = mmInStream.read(buffer);		// Get number of bytes and message in "buffer"
                     h.obtainMessage(RECIEVE_MESSAGE, bytes, -1, buffer).sendToTarget();		// Send to message queue Handler
                 } catch (IOException e) {
@@ -501,18 +404,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         }
 
-        /* Call this from the main activity to send data to the remote device */
         public void write(String message) {
 
             byte[] msgBuffer = message.getBytes();
             try {
                 mmOutStream.write(msgBuffer);
             } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
 
-    //Private function, connects a BluetoothSocket
+    //Private function: createBluetoothSocket -> creates and connects a BluetoothSocket
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
         if(Build.VERSION.SDK_INT >= 10){
             try {
@@ -525,7 +428,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return  device.createRfcommSocketToServiceRecord(MY_UUID);
     }
 
-    //Private function. Recalculates the direction of the arrow
+    //Private function: recalculate -> Recalculates the direction of the arrow
     private void recalculate(){
         if(ourArvaLatitude != 0 && receivingArvaLatitude != 0) {
             Location ourArva = new Location("OurArva");
@@ -538,34 +441,122 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             bearing = ourArva.bearingTo(receivingArva);
             distance = ourArva.distanceTo(receivingArva);
+            Log.i("bearing", String.valueOf(bearing));
+            /*if(bearing < 0){
+                orientation = 360 + bearing;
+            }
+            else {
+                orientation = 0 + bearing;
+            }
+
+            if(firstOrientation != -1){
+                Log.i("1st", String.valueOf(firstOrientation));
+                orientation += firstOrientation;
+                if(orientation > 360){
+                    orientation -= 360;
+                }
+                Log.i("orientation", String.valueOf(orientation));
+            }*/
+            orientation = (360+((bearing + 360) % 360)-firstOrientation) % 360;
+        }
+        else {
             firstOrientation = -1;
             secondOrientation = -1;
-
-            Log.i("Bearing:", String.valueOf(bearing));
         }
 
         updateArrow();
     }
 
-    private void updateArrow(){
+    // private function: updateArrow -> Rotates the R.id.arrow according to the different values we have
+    private void updateArrow() {
         arrow = (ImageView) findViewById(R.id.arrow);
         distanceTextView = (TextView) findViewById(R.id.distance);
+        latitude_info = (TextView) findViewById(R.id.latitude);
+        longitude_info = (TextView) findViewById(R.id.longitude);
+        altitude_info = (TextView) findViewById(R.id.altitude);
 
-        if(arrow != null && distanceTextView != null) {
-            if (firstOrientation != -1) {
-                if (secondOrientation != -1) {
+        if (arrow != null && distanceTextView != null) {
+            if (firstOrientation != -1 && secondOrientation != -1) {
+                if (orientation != -1) {
                     arrow.setRotation(0);
-                    arrow.setRotation(bearing + (firstOrientation - secondOrientation));
+                    arrow.setRotation((orientation + (firstOrientation - secondOrientation)));
                 } else {
                     arrow.setRotation(0);
                     arrow.setRotation(bearing);
                 }
-            } else {
-                arrow.setRotation(0);
-                arrow.setRotation(bearing);
-            }
 
-            distanceTextView.setText(String.valueOf(distance) + " meters");
+                if(altitude_info != null && longitude_info != null && latitude_info != null) {
+                    altitude_info.setText(String.valueOf(ourArvaAltitude));
+                    longitude_info.setText(String.valueOf(ourArvaLongitude));
+                    latitude_info.setText(String.valueOf(ourArvaLatitude));
+                }
+                distanceTextView.setText(String.valueOf(distance) + " meters");
+            }
         }
+    }
+
+    // private function: setListeners -> Sets the listeners for the different buttons or services
+    private void setListeners(){
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationListener = new MyLocationListener();
+        try{
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        }catch (SecurityException se){
+            se.printStackTrace();
+        }
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        assert fab != null;
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MainActivity.this, BluetoothDeviceListActivity.class);
+                startActivityForResult(i, BLUETOOTH_SEARCH_DEVICE);
+            }
+        });
+
+        h = new Handler() {
+            public void handleMessage(android.os.Message msg) {
+                switch (msg.what) {
+                    case RECIEVE_MESSAGE:													// if receive massage
+                        byte[] readBuf = (byte[]) msg.obj;
+                        String strIncom = new String(readBuf, 0, msg.arg1);					// create string from bytes array
+                        sb.append(strIncom);												// append string
+                        int endOfLineIndex = sb.indexOf("\r\n");							// determine the end-of-line
+                        if (endOfLineIndex > 0) {                                            // if end-of-line,
+                            String sbprint = sb.substring(0, endOfLineIndex);                // extract string
+                            sb.delete(0, sb.length());                                        // and clear
+
+                            boolean error = false;
+                            String aux = "";
+                            try {
+                                aux = sbprint.substring(0, sbprint.indexOf('F') + 1);
+                                //Toast.makeText(MainActivity.this, aux, Toast.LENGTH_LONG).show();
+                            }catch (IndexOutOfBoundsException e){
+                                e.printStackTrace();
+                            }
+                            if (aux.equalsIgnoreCase("Arvf")){
+                                //Toast.makeText(MainActivity.this, sbprint, Toast.LENGTH_LONG).show();
+                                try {
+                                    aux = sbprint.substring(sbprint.indexOf('F') + 1, sbprint.indexOf(':'));
+                                    receivingArvaLatitude = Double.parseDouble(aux);
+
+                                    aux = sbprint.substring(sbprint.indexOf(':') + 1, sbprint.length());
+                                    receivingArvaLongitude = Double.parseDouble(aux);
+                                } catch (IndexOutOfBoundsException | NumberFormatException e) {
+                                    e.printStackTrace();
+                                    error = true;
+                                }
+
+                                if (receivingArvaLatitude != 0 && ourArvaLongitude != 0 && !error) {
+                                    //Toast.makeText(MainActivity.this, String.valueOf(receivingArvaLatitude) + String.valueOf(receivingArvaLongitude), Toast.LENGTH_LONG).show();
+                                    recalculate();
+                                }
+                            }
+                        }
+                        break;
+                }
+            }
+        };
     }
 }
