@@ -8,11 +8,16 @@
     <!-- BLE -->
     <string name="text_pair">Pair</string>
     <string name="title_activity_maps">Map</string>
-    <string name="bleHelper">Please enable bluetooth and connect to an Arva device!</string>
     <string name="latitude">Latitude</string>
     <string name="height">Altitude</string>
     <string name="longitude">Longitude</string>
 
     <!-- Google inc -->
     <string name="google_app_id">7013903331</string>
+    <string name="arrow_CD">Directional Arrow</string>
+    <string name="emisio_hint">Mode Emissió</string>
+    <string name="recepcio_hint">Mode Recepció</string>
+    <string name="ble_butt_hint">Scan Devices</string>
+    <string name="change_mode_hint">Change Mode</string>
+    <string name="ble_info_hint">Please, tap scan devces and select your ARVA to recieve more information</string>
 </resources>

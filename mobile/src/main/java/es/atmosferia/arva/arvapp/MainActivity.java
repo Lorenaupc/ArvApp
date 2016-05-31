@@ -1,5 +1,6 @@
 package es.atmosferia.arva.arvapp;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -22,18 +23,22 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.internal.StreetViewLifecycleDelegate;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,6 +50,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int BLUETOOTH_SEARCH_DEVICE = 2;
     private static final int RECIEVE_MESSAGE = 3;
+
+    //ARVA mode variable, 1 --> TX // 2 --> RX
+    private int mode = 1;
+    private static int fragmentToDisplay = 0;
 
     // Location variables //
     private double ourArvaLatitude = 0;
@@ -146,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         //desactivar botó i ficar la imatge en fletxa
                         Bundle bundle = data.getExtras();
                         connectedDevice = bundle.getParcelable("BluetoothDevice");
+                        fragmentToDisplay = mode;
                         Toast.makeText(this, "Succeeded!", Toast.LENGTH_LONG).show();
                         break;
                     default:
@@ -268,7 +278,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 if(arrow != null && distanceTextView != null){
                     arrow.setVisibility(View.VISIBLE);
                     distanceTextView.setVisibility(View.VISIBLE);
-                    findViewById(R.id.section_label).setVisibility(View.INVISIBLE);
                 }
             }
             /*else{
@@ -309,11 +318,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             View rootView = null;
             switch(getArguments().getInt(ARG_SECTION_NUMBER)){
                 case 1:
-                    rootView = inflater.inflate(R.layout.fragment_main, container, false);
-                    TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-                    rootView.findViewById(R.id.arrow).setVisibility(View.GONE);
-                    rootView.findViewById(R.id.distance).setVisibility(View.GONE);
-                    textView.setText(R.string.bleHelper);
+                    switch (fragmentToDisplay){
+                        case 0:
+                            //BLE case
+                            rootView = inflater.inflate(R.layout.fragment_main, container, false);
+                            break;
+                        case 1:
+                            //TX case
+                            rootView = inflater.inflate(R.layout.fragment_main_tx, container, false);
+                            break;
+                        case 2:
+                            //RX case
+                            rootView = inflater.inflate(R.layout.fragment_main_rx, container, false);
+                            break;
+                    }
+                    setCustomListeners(fragmentToDisplay, rootView);
                     break;
                 case 2:
                     // TODO: fix map
@@ -430,6 +449,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     //Private function: recalculate -> Recalculates the direction of the arrow
     private void recalculate(){
+        if(fragmentToDisplay != 2) return;
+
         if(ourArvaLatitude != 0 && receivingArvaLatitude != 0) {
             Location ourArva = new Location("OurArva");
 
@@ -469,8 +490,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // private function: updateArrow -> Rotates the R.id.arrow according to the different values we have
     private void updateArrow() {
-        arrow = (ImageView) findViewById(R.id.arrow);
-        distanceTextView = (TextView) findViewById(R.id.distance);
+        if(fragmentToDisplay != 2) return;
+
+        arrow = (ImageView) findViewById(R.id.rx_arrow);
+        distanceTextView = (TextView) findViewById(R.id.rx_distance_textview);
         latitude_info = (TextView) findViewById(R.id.latitude);
         longitude_info = (TextView) findViewById(R.id.longitude);
         altitude_info = (TextView) findViewById(R.id.altitude);
@@ -510,8 +533,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(MainActivity.this, BluetoothDeviceListActivity.class);
-                startActivityForResult(i, BLUETOOTH_SEARCH_DEVICE);
+                callForHelp();
             }
         });
 
@@ -529,28 +551,42 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                             boolean error = false;
                             String aux = "";
+                            String packetFragments[] = null;
+                            String id = null, type = null, recievedMode = null;
+                            int checksum = 0;
                             try {
-                                aux = sbprint.substring(0, sbprint.indexOf('F') + 1);
+                                aux = sbprint.substring(0, 3);
                                 //Toast.makeText(MainActivity.this, aux, Toast.LENGTH_LONG).show();
                             }catch (IndexOutOfBoundsException e){
                                 e.printStackTrace();
                             }
-                            if (aux.equalsIgnoreCase("Arvf")){
+                            if (aux.equalsIgnoreCase("DVA")){
                                 //Toast.makeText(MainActivity.this, sbprint, Toast.LENGTH_LONG).show();
                                 try {
-                                    aux = sbprint.substring(sbprint.indexOf('F') + 1, sbprint.indexOf(':'));
-                                    receivingArvaLatitude = Double.parseDouble(aux);
+                                    packetFragments = sbprint.split(";");
 
-                                    aux = sbprint.substring(sbprint.indexOf(':') + 1, sbprint.length());
-                                    receivingArvaLongitude = Double.parseDouble(aux);
+                                    type = packetFragments[0].substring(3, 4);
+                                    recievedMode = packetFragments[0].substring(4, 5);
+                                    id = packetFragments[0].substring(5, packetFragments[0].length());
+                                    Log.i("ID", id);
+
+                                    receivingArvaLatitude = Double.parseDouble(packetFragments[1]);
+                                    receivingArvaLongitude = Double.parseDouble(packetFragments[2]);
+                                    checksum = Integer.parseInt(String.valueOf(packetFragments[3].charAt(0)));
+                                    int multiplicador = 1;
+                                    for(int i = 1; i < packetFragments[3].length(); i++){
+                                        checksum += Integer.parseInt(String.valueOf(packetFragments[3].charAt(i))) * (multiplicador * 10);
+                                        multiplicador *= 10;
+                                    }
                                 } catch (IndexOutOfBoundsException | NumberFormatException e) {
                                     e.printStackTrace();
                                     error = true;
                                 }
 
-                                if (receivingArvaLatitude != 0 && ourArvaLongitude != 0 && !error) {
+                                if (packetFragments[0].length() + packetFragments[1].length() + packetFragments[2].length() + 3 == checksum && !error) {
                                     //Toast.makeText(MainActivity.this, String.valueOf(receivingArvaLatitude) + String.valueOf(receivingArvaLongitude), Toast.LENGTH_LONG).show();
                                     recalculate();
+                                    mode = Integer.parseInt(recievedMode);
                                 }
                             }
                         }
@@ -558,5 +594,49 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
         };
+    }
+
+    //private function: callForHelp() -> Sends some data to 112
+    private void callForHelp(){
+        SmsManager smsManager = SmsManager.getDefault();
+        //smsManager.sendTextMessage("112", null, "DVA Automated message! A DVA device has detected an emergency in Latitude: " + String.valueOf(ourArvaLatitude) + " longitude: " + String.valueOf(ourArvaLongitude), null, null);
+        Toast.makeText(this, "Sending message to 112", Toast.LENGTH_LONG).show();
+    }
+
+    //private function: setCustomListeners -> set the appropiated listeners for each fragment in our app
+    private static void setCustomListeners(int currentFragment, final View rootView){
+        Button aux;
+        switch (currentFragment){
+            case 0:
+                aux = (Button) rootView.findViewById(R.id.ble_enable_butt);
+                aux.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent i = new Intent(view.getContext(), BluetoothDeviceListActivity.class);
+                        ((Activity) rootView.getContext()).startActivityForResult(i, BLUETOOTH_SEARCH_DEVICE);
+                    }
+                });
+                break;
+            case 1:
+                aux = (Button) rootView.findViewById(R.id.tx_chmode_butt);
+                aux.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        //TODO: Complete
+                        fragmentToDisplay = 2;
+                    }
+                });
+                break;
+            case 2:
+                aux = (Button) rootView.findViewById(R.id.rx_chmode_butt);
+                aux.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        //TODO: Complete
+                        fragmentToDisplay = 1;
+                    }
+                });
+                break;
+        }
     }
 }
