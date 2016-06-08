@@ -360,7 +360,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     */
                     SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager().findFragmentById(R.id.map);
                     mapFragment.getMapAsync(this);
-
                     break;
                 case 3:
                     rootView = inflater.inflate(R.layout.fragment_stats, container, false);
@@ -565,7 +564,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             }
                         })
                         .show();
-
             }
         });
 
