@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -16,6 +17,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.support.v4.app.Fragment;
@@ -34,10 +36,16 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.internal.StreetViewLifecycleDelegate;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -296,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public void onProviderEnabled(String provider){}
     }
 
-    public static class PlaceholderFragment extends Fragment {
+    public static class PlaceholderFragment extends Fragment implements OnMapReadyCallback {
         private static final String ARG_SECTION_NUMBER = "section_number";
 
         public PlaceholderFragment() { }
@@ -337,7 +345,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 case 2:
                     // TODO: fix map
                     rootView = inflater.inflate(R.layout.fragment_gps, container, false);
-                    mapView = (MapView) rootView.findViewById(R.id.map);
+                    /*mapView = (MapView) rootView.findViewById(R.id.map);
                     mapView.onCreate(savedInstanceState);
                     mMap = mapView.getMap();
                     mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -349,6 +357,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                     MapsInitializer.initialize(rootView.getContext());
                     //mMap.setMyLocationEnabled(true);
+                    */
+                    SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager().findFragmentById(R.id.map);
+                    mapFragment.getMapAsync(this);
+
                     break;
                 case 3:
                     rootView = inflater.inflate(R.layout.fragment_stats, container, false);
@@ -356,6 +368,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
             return rootView;
+        }
+
+        @Override
+        public void onMapReady(GoogleMap googleMap){
+            mMap = googleMap;
+            LatLng sydney = new LatLng(-34, 151);
+            mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         }
     }
 
@@ -533,7 +553,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                callForHelp();
+                new AlertDialog.Builder(view.getContext())
+                        .setIcon(R.drawable.boto_112)
+                        .setTitle("Emergency Services Alert")
+                        .setMessage("Proceed calling 112 for an emergency?")
+                        .setNegativeButton("No", null)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                callForHelp();
+                            }
+                        })
+                        .show();
             }
         });
 
