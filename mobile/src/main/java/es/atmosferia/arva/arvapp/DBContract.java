@@ -24,13 +24,13 @@ public class DBContract {
         public static final String COLUMN_DEV_ID = "dev_id";
         public static final String COLUMN_LAT = "latitude";
         public static final String COLUMN_LON = "longitude";
-        public static final String COLUMN_DATE = "date";
+        public static final String COLUMN_LASTUPDATED = "date";
 
         // String que proporciona la creació de la taula "Table1"
         public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
                 COLUMN_DEV_ID + TEXT_TYPE + " UNIQUE" + COMMA_SEP +
                 COLUMN_LAT + REAL_TYPE + COMMA_SEP + COLUMN_LON +
-                REAL_TYPE + COMMA_SEP + COLUMN_DATE + TEXT_TYPE + " )";
+                REAL_TYPE + COMMA_SEP + COLUMN_LASTUPDATED + TEXT_TYPE + " )";
 
         // String que proporciona l'eliminació de la taula "Table1"
         public static final String DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;

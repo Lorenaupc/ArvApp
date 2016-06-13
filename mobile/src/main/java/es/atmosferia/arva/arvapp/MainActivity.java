@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -33,6 +34,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,10 +42,8 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.internal.StreetViewLifecycleDelegate;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
@@ -62,6 +63,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //ARVA mode variable, 1 --> TX // 2 --> RX
     private int mode = 1;
     private static int fragmentToDisplay = 0;
+
+    //Multi-victim dependent
+    private ArrayList<DVA> dvaArrayList = null;
+    private static boolean toDelete = false;
+    private int pointingDva = 0;
+    private static int current = 0;
+    private static int currentMax = 0;
 
     // Location variables //
     private double ourArvaLatitude = 0;
@@ -118,6 +126,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mViewPager = (ViewPager) findViewById(R.id.container);
         assert mViewPager != null;
         mViewPager.setAdapter(mSectionsPagerAdapter);
+
+        // DVA ArrayList declared
+        dvaArrayList = new ArrayList<>();
 
         // Listeners
         setListeners();
@@ -226,6 +237,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
 
+            mSectionsPagerAdapter.notifyDataSetChanged();
+
             Log.i("create socket", "...Create Socket...");
             mConnectedThread = new ConnectedThread(btSocket);
             mConnectedThread.start();
@@ -261,7 +274,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             secondOrientation = Math.round(event.values[0]);
         }
 
-        updateArrow();
+        if(current != pointingDva){
+            recalculate();
+        }
+        else {
+            updateArrow();
+        }
     }
 
     // function onAccuracyChanged -> not in use
@@ -338,6 +356,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         case 2:
                             //RX case
                             rootView = inflater.inflate(R.layout.fragment_main_rx, container, false);
+                            ImageButton imageDone = (ImageButton) rootView.findViewById(R.id.rescuedVictim);
+                            imageDone.setImageResource(R.drawable.ic_done);
+                            imageDone.setColorFilter(Color.parseColor("#ff99cc00"));
                             break;
                     }
                     setCustomListeners(fragmentToDisplay, rootView);
@@ -379,6 +400,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
+
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -468,7 +490,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     //Private function: recalculate -> Recalculates the direction of the arrow
     private void recalculate(){
+        //Check if we are in the appropiate mode
         if(fragmentToDisplay != 2) return;
+
+        //Check if the actual victim has been rescued (multi-victim system)
+        if(toDelete && !dvaArrayList.isEmpty()){
+            dvaArrayList.remove(current);
+            current = 0;
+        }
+        toDelete = false;
+
+        //Check if the user switched victim
+        if(pointingDva != current){
+            pointingDva = current;
+            ourArvaLongitude = dvaArrayList.get(pointingDva).getLongitude();
+            ourArvaLatitude = dvaArrayList.get(pointingDva).getLatitude();
+        }
 
         if(ourArvaLatitude != 0 && receivingArvaLatitude != 0) {
             Location ourArva = new Location("OurArva");
@@ -518,7 +555,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         altitude_info = (TextView) findViewById(R.id.altitude);
 
         if (arrow != null && distanceTextView != null) {
-            if (firstOrientation != -1 && secondOrientation != -1) {
+            if (firstOrientation != -1 && secondOrientation != -1 && !dvaArrayList.isEmpty()) {
                 if (orientation != -1) {
                     arrow.setRotation(0);
                     arrow.setRotation((orientation + (firstOrientation - secondOrientation)));
@@ -532,7 +569,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     longitude_info.setText(String.valueOf(ourArvaLongitude));
                     latitude_info.setText(String.valueOf(ourArvaLatitude));
                 }
-                distanceTextView.setText(String.valueOf(distance) + " meters");
+                /*if (dvaArrayList.isEmpty())*/ distanceTextView.setText(String.valueOf(distance) + " meters");
+                //else distanceTextView.setText("No victims found!");
+            }
+            else{
+                distanceTextView.setText("No victims found!");
             }
         }
     }
@@ -571,6 +612,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             public void handleMessage(android.os.Message msg) {
                 switch (msg.what) {
                     case RECIEVE_MESSAGE:													// if receive massage
+                        Toast.makeText(MainActivity.this, "Received!", Toast.LENGTH_LONG).show();
                         byte[] readBuf = (byte[]) msg.obj;
                         String strIncom = new String(readBuf, 0, msg.arg1);					// create string from bytes array
                         sb.append(strIncom);												// append string
@@ -581,40 +623,54 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                             boolean error = false;
                             String aux = "";
-                            String packetFragments[] = null;
                             String id = null, type = null, recievedMode = null;
                             int checksum = 0;
                             try {
                                 aux = sbprint.substring(0, 3);
-                                //Toast.makeText(MainActivity.this, aux, Toast.LENGTH_LONG).show();
+                                Toast.makeText(MainActivity.this, aux, Toast.LENGTH_LONG).show();
                             }catch (IndexOutOfBoundsException e){
                                 e.printStackTrace();
                             }
                             if (aux.equalsIgnoreCase("DVA")){
-                                //Toast.makeText(MainActivity.this, sbprint, Toast.LENGTH_LONG).show();
+                                Toast.makeText(MainActivity.this, sbprint, Toast.LENGTH_LONG).show();
+                                DVA newDva = new DVA();
                                 try {
-                                    packetFragments = sbprint.split(";");
+                                    type = sbprint.substring(3, 4);
+                                    recievedMode = sbprint.substring(4, 5);
+                                    id = sbprint.substring(5, 18);
+                                    newDva.setDev_id(id);
 
-                                    type = packetFragments[0].substring(3, 4);
-                                    recievedMode = packetFragments[0].substring(4, 5);
-                                    id = packetFragments[0].substring(5, packetFragments[0].length());
-                                    Log.i("ID", id);
+                                    //Log.i("ID", id);
 
-                                    receivingArvaLatitude = Double.parseDouble(packetFragments[1]);
-                                    receivingArvaLongitude = Double.parseDouble(packetFragments[2]);
-                                    checksum = Integer.parseInt(String.valueOf(packetFragments[3].charAt(0)));
+                                    receivingArvaLatitude = Double.parseDouble(sbprint.substring(18, 26));
+                                    newDva.setLatitude(receivingArvaLatitude);
+                                    receivingArvaLongitude = Double.parseDouble(sbprint.substring(26, 34));
+                                    newDva.setLongitude(receivingArvaLongitude);
+                                    checksum = Integer.parseInt(String.valueOf(sbprint.substring(34, 36).charAt(0)));
                                     int multiplicador = 1;
-                                    for(int i = 1; i < packetFragments[3].length(); i++){
-                                        checksum += Integer.parseInt(String.valueOf(packetFragments[3].charAt(i))) * (multiplicador * 10);
+                                    for(int i = 1; i < sbprint.substring(34, 36).length(); i++){
+                                        checksum += Integer.parseInt(String.valueOf(sbprint.substring(34, 36).charAt(i))) * (multiplicador * 10);
                                         multiplicador *= 10;
                                     }
+
+
+
                                 } catch (IndexOutOfBoundsException | NumberFormatException e) {
                                     e.printStackTrace();
                                     error = true;
                                 }
 
-                                if (packetFragments[0].length() + packetFragments[1].length() + packetFragments[2].length() + 3 == checksum && !error) {
+                                if (sbprint.length() + 3 == checksum && !error) {
                                     //Toast.makeText(MainActivity.this, String.valueOf(receivingArvaLatitude) + String.valueOf(receivingArvaLongitude), Toast.LENGTH_LONG).show();
+                                    if (dvaArrayList.contains(newDva)){
+                                        int i = dvaArrayList.indexOf(newDva);
+                                        dvaArrayList.get(i).setLatitude(newDva.getLatitude());
+                                        dvaArrayList.get(i).setLongitude(newDva.getLongitude());
+                                    }
+                                    else{
+                                        dvaArrayList.add(newDva);
+                                        currentMax++;
+                                    }
                                     recalculate();
                                     mode = Integer.parseInt(recievedMode);
                                 }
@@ -636,6 +692,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //private function: setCustomListeners -> set the appropiated listeners for each fragment in our app
     private static void setCustomListeners(int currentFragment, final View rootView){
         Button aux;
+
         switch (currentFragment){
             case 0:
                 aux = (Button) rootView.findViewById(R.id.ble_enable_butt);
@@ -666,7 +723,44 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         fragmentToDisplay = 1;
                     }
                 });
+
+                ImageButton next = (ImageButton) rootView.findViewById(R.id.nextVictim);
+                next.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        current = (current + 1) % currentMax;
+                    }
+                });
+
+                ImageButton done = (ImageButton) rootView.findViewById(R.id.rescuedVictim);
+                done.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        //dvaArray delete current victim
+                        toDelete = true;
+                    }
+                });
+
+                ImageButton after = (ImageButton) rootView.findViewById(R.id.previousVictim);
+                after.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        current = (current - 1) % currentMax;
+                    }
+                });
+
                 break;
         }
     }
+
+    /*private void changeDVAarray(){
+        //TODO: HOW TO CALL THS METHOD FROM STATIC CONTEXT
+        if (toDelete){
+            dvaArrayList.remove(current);
+        }
+        if (dvaArrayList.get(current) == null){
+            Toast.makeText(this, "No victim available", Toast.LENGTH_LONG).show();
+        }
+    }*/
+
 }

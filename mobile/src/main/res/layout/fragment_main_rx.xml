@@ -50,6 +50,33 @@
         android:layout_alignParentEnd="false"
         android:layout_alignParentStart="false"
         android:layout_below="@+id/rx_distance_textview"
-        android:layout_marginTop="30dp" />
+        android:layout_marginTop="20dp" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/rescuedVictim"
+        android:src="@drawable/ic_done"
+        android:backgroundTint="@android:color/transparent"
+        android:layout_above="@+id/rx_arrow"
+        android:layout_alignEnd="@+id/rx_arrow" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/nextVictim"
+        android:src="@android:drawable/ic_media_ff"
+        android:backgroundTint="@color/colorAccent"
+        android:layout_alignTop="@+id/rx_distance_textview"
+        android:layout_alignEnd="@+id/rx_arrow" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/previousVictim"
+        android:src="@android:drawable/ic_media_rew"
+        android:backgroundTint="@color/colorAccent"
+        android:layout_alignTop="@+id/rx_distance_textview"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>
