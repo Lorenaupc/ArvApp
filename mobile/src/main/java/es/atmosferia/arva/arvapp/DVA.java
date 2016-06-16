@@ -30,6 +30,13 @@ public class DVA implements Serializable {
         this.lastUpdate = c.toString();
     }
 
+    public DVA(DVA dva){
+        dev_id = dva.dev_id;
+        latitude = dva.latitude;
+        longitude = dva.longitude;
+        lastUpdate = dva.lastUpdate;
+    }
+
     //Get methods
 
     public String getDev_id(){
@@ -75,5 +82,9 @@ public class DVA implements Serializable {
         Calendar c = GregorianCalendar.getInstance();
         c.get(Calendar.HOUR_OF_DAY);
         this.lastUpdate = c.toString();
+    }
+
+    public void setLastUpdate(String lastUpdate){
+        this.lastUpdate = lastUpdate;
     }
 }

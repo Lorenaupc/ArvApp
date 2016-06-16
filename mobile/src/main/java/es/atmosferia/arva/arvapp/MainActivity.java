@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -107,6 +108,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ImageView arrow = null;
     private TextView distanceTextView = null;
     private TextView latitude_info = null, longitude_info = null, altitude_info = null;
+
+    //Map related variables
+    private static GoogleMap mMap;
 
     // function: onCreate -> Instantiates the important variables and listeners
     @Override
@@ -326,9 +330,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         private static final String ARG_SECTION_NUMBER = "section_number";
 
         public PlaceholderFragment() { }
-
-        private MapView mapView = null;
-        private GoogleMap mMap;
 
         public static PlaceholderFragment newInstance(int sectionNumber) {
             PlaceholderFragment fragment = new PlaceholderFragment();
@@ -612,7 +613,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             public void handleMessage(android.os.Message msg) {
                 switch (msg.what) {
                     case RECIEVE_MESSAGE:													// if receive massage
-                        Toast.makeText(MainActivity.this, "Received!", Toast.LENGTH_LONG).show();
+                        //Toast.makeText(MainActivity.this, "Received!", Toast.LENGTH_LONG).show();
                         byte[] readBuf = (byte[]) msg.obj;
                         String strIncom = new String(readBuf, 0, msg.arg1);					// create string from bytes array
                         sb.append(strIncom);												// append string
@@ -621,13 +622,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             String sbprint = sb.substring(0, endOfLineIndex);                // extract string
                             sb.delete(0, sb.length());                                        // and clear
 
+                            //Log.i("Pre-if", sbprint);
                             boolean error = false;
                             String aux = "";
                             String id = null, type = null, recievedMode = null;
                             int checksum = 0;
                             try {
                                 aux = sbprint.substring(0, 3);
-                                Toast.makeText(MainActivity.this, aux, Toast.LENGTH_LONG).show();
+                                //Toast.makeText(MainActivity.this, aux, Toast.LENGTH_LONG).show();
                             }catch (IndexOutOfBoundsException e){
                                 e.printStackTrace();
                             }
@@ -635,21 +637,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                 Toast.makeText(MainActivity.this, sbprint, Toast.LENGTH_LONG).show();
                                 DVA newDva = new DVA();
                                 try {
-                                    type = sbprint.substring(3, 4);
-                                    recievedMode = sbprint.substring(4, 5);
-                                    id = sbprint.substring(5, 18);
-                                    newDva.setDev_id(id);
+                                    type = String.valueOf(sbprint.charAt(3));
+                                    id = sbprint.substring(4, 17);
+                                    //newDva.setDev_id(id);
 
-                                    //Log.i("ID", id);
-
-                                    receivingArvaLatitude = Double.parseDouble(sbprint.substring(18, 26));
-                                    newDva.setLatitude(receivingArvaLatitude);
-                                    receivingArvaLongitude = Double.parseDouble(sbprint.substring(26, 34));
+                                    /*byte [] joder = sbprint.substring(17,25).getBytes();
+                                    receivingArvaLatitude = ByteBuffer.wrap(joder).getDouble();
+                                    joder = sbprint.substring(25,33).getBytes();
+                                    receivingArvaLongitude = ByteBuffer.wrap(joder).getDouble();*/
+                                    receivingArvaLatitude = sbprint.substring(17,25);
                                     newDva.setLongitude(receivingArvaLongitude);
-                                    checksum = Integer.parseInt(String.valueOf(sbprint.substring(34, 36).charAt(0)));
+                                    checksum = Integer.parseInt(String.valueOf(sbprint.substring(33, 35).charAt(0)));
                                     int multiplicador = 1;
-                                    for(int i = 1; i < sbprint.substring(34, 36).length(); i++){
-                                        checksum += Integer.parseInt(String.valueOf(sbprint.substring(34, 36).charAt(i))) * (multiplicador * 10);
+                                    for(int i = 1; i < sbprint.substring(33, 35).length(); i++){
+                                        checksum += Integer.parseInt(String.valueOf(sbprint.substring(33, 35).charAt(i))) * (multiplicador * 10);
                                         multiplicador *= 10;
                                     }
 
@@ -659,8 +660,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                     e.printStackTrace();
                                     error = true;
                                 }
-
-                                if (sbprint.length() + 3 == checksum && !error) {
+                                Log.i("length", String.valueOf(sbprint.length()));
+                                if (sbprint.length() == (checksum + 3) && !error) {
+                                    Log.i("Lati", String.valueOf(receivingArvaLatitude));
+                                    Log.i("Longi", String.valueOf(receivingArvaLongitude));
+                                    Log.i("ID", id);
                                     //Toast.makeText(MainActivity.this, String.valueOf(receivingArvaLatitude) + String.valueOf(receivingArvaLongitude), Toast.LENGTH_LONG).show();
                                     if (dvaArrayList.contains(newDva)){
                                         int i = dvaArrayList.indexOf(newDva);
@@ -668,11 +672,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                         dvaArrayList.get(i).setLongitude(newDva.getLongitude());
                                     }
                                     else{
-                                        dvaArrayList.add(newDva);
+                                        addDvaToArray(newDva);
                                         currentMax++;
                                     }
                                     recalculate();
-                                    mode = Integer.parseInt(recievedMode);
+                                   // mode = Integer.parseInt(recievedMode);
                                 }
                             }
                         }
@@ -762,5 +766,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             Toast.makeText(this, "No victim available", Toast.LENGTH_LONG).show();
         }
     }*/
+
+    private void addDvaToArray(DVA dvaObject){
+
+        //TODO: sanity check
+
+        Location ourArva = new Location("Our DVA");
+        Location distantArva = new Location("Distant DVA");
+        float distance = 0, newDistance = 0;
+
+        ourArva.setLatitude(ourArvaLatitude);
+        ourArva.setLongitude(ourArvaLongitude);
+
+        distantArva.setLatitude(dvaObject.getLatitude());
+        distantArva.setLongitude(dvaObject.getLongitude());
+
+        newDistance = ourArva.distanceTo(distantArva);
+
+        LatLng dva = new LatLng(distantArva.getLatitude(), distantArva.getLongitude());
+        mMap.addMarker(new MarkerOptions().position(dva).title("Marker"));
+
+        for(int i = 0; i < dvaArrayList.size(); i++){
+            distantArva = new Location("distantArva");
+            distantArva.setLatitude((dvaArrayList.get(i).getLatitude()));
+            distantArva.setLongitude((dvaArrayList.get(i).getLongitude()));
+
+            distance = ourArva.distanceTo(distantArva);
+            if (newDistance < distance){
+                dvaArrayList.add(i, dvaObject);
+            }
+
+
+        }
+    }
 
 }
