@@ -3,7 +3,6 @@
     <string name="app_name">ArvApp</string>
     <string name="ble_name">Bluetooth Device List</string>
     <string name="action_settings">Settings</string>
-    <string name="section_format">Hello World from section: %1$d</string>
 
     <!-- BLE -->
     <string name="text_pair">Pair</string>
@@ -15,9 +14,9 @@
     <!-- Google inc -->
     <string name="google_app_id">7013903331</string>
     <string name="arrow_CD">Directional Arrow</string>
-    <string name="emisio_hint">Mode Emissió</string>
-    <string name="recepcio_hint">Mode Recepció</string>
+    <string name="emisio_hint">Transmitter Mode</string>
+    <string name="recepcio_hint">Reception Mode</string>
     <string name="ble_butt_hint">Scan Devices</string>
     <string name="change_mode_hint">Change Mode</string>
-    <string name="ble_info_hint">Please, tap scan devces and select your ARVA to recieve more information</string>
+    <string name="ble_info_hint">Please, tap Scan Devices button and select your DVA to receive information</string>
 </resources>
